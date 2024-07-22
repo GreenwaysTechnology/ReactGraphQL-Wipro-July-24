@@ -257,6 +257,285 @@ query - a read only fetch
 mutation- a write followed by read
 subscription- a long live request that fetches data in response to source events
 ....................................................................................
+                 Graphql Query language secification
+.....................................................................................
+
+Concepts:
+
+=>Query encaspulation
+=>Query header
+=>Query api
+=>fields
+=>arguments
+=>aliases
+=>fragments
+=>variables
+=>directives
+=>mutations
+=>inline fragements
+
+if you want to learn query language we need api.
+i am going to use mock apis.
+
+https://countries.trevorblades.com/
+
+Client tools:
+
+1.post man
+2.online browser based tool.
+ https://studio.apollographql.com/sandbox/explorer
+
+We are going to use "Apollographql" online tool.
+
+
+Graphql query language has syntax:
+
+1.Selection Set
+
+  selectionSet  {Selection} => Query Encapsulation.
+
+selectionSet could "query,mutation,subscription"
+
+ query  {Selection}
+  or
+ mutation  {Selection}
+  or
+ subscription  {Selection}
+
+Selection:
+
+ apiname (method)
+    returns
+     -fields
+     -fragement spread
+     -inline fragement
+
+syntax
+  api {
+    field1
+    fiedl2
+    field3
+  }
+
+Full eg with selection set
+
+query {
+ api {
+    field1
+    fiedl2  --------------------->Server------response-json
+    field3
+ }
+ }
+
+selection set is "query" - to read 
+api - name of the method
+fields means the data variables
+
+Operation and Selection Set
+
+//read =>GET
+query {
+person{
+  firstname
+  lastname
+  age
+ }
+}
+
+//Write
+mutation createUser(params){
+  createuser(params) {
+     id
+     name
+  }
+}
+//streaming
+subscription getPriceQuote(params) {
+ getPrice(params) {
+   price
+   name
+ }
+ 
+}
+................................................................................
+
+Use Case: Simple Query
+
+# Request
+query {
+  countries {
+    name
+  }
+}
+
+
+Response:
+{
+  "data": {
+    "countries": [
+      {
+    
+        "name": "Andorra"
+      },
+      {
+      
+        "name": "United Arab Emirates"
+      },
+      {
+        
+        "name": "Afghanistan"
+      },
+     
+    ]
+  }
+}
+.................
+
+More fields:
+............
+
+Use case :How to request more fields
+
+# Request
+query {
+  countries {
+    name
+    code 
+    capital
+    currency
+    emoji
+    
+  }
+}
+Response:
+
+{
+  "data": {
+    "countries": [
+      {
+        "name": "Andorra",
+        "code": "AD",
+        "capital": "Andorra la Vella",
+        "currency": "EUR",
+        "emoji": "🇦🇩"
+      },
+      {
+        "name": "United Arab Emirates",
+        "code": "AE",
+        "capital": "Abu Dhabi",
+        "currency": "AED",
+        "emoji": "🇦🇪"
+      },
+  ]
+ }
+}
+....................................................................................
+			    Query Syntax
+...................................................................................
+
+1.with query  keyword
+query {
+  countries {
+    name
+    code 
+    capital
+    currency
+    emoji
+    
+  }
+}
+2.without query keyword
+# Request
+{
+  countries {
+    name
+    code
+    capital
+    currency
+    emoji
+  }
+}
+
+3.Query with "Header" - Query Header
+
+ Query header is just dummy name to idenfity the type of query.
+ This looks like "methodName",
+ Which can any name.
+
+# Request
+query GETCounterInfo {
+  countries {
+    name
+    code
+    capital
+    currency
+    emoji
+  }
+}
+.....................................................................................
+			Nested Fields
+.....................................................................................
+
+REST:
+
+GET	/posts
+GET	/posts/1
+GET	/posts/1/comments
+
+Here comments is nested data structure.
+
+Use case: Query can ask nested data.
+
+# Request
+query GETCounterInfo {
+  countries {
+    name
+    code
+    capital
+    currency
+    emoji
+    states {
+      code
+      name
+    }
+  }
+}
+
+Response:
+"data": {
+    "countries": [
+      {
+        "name": "Andorra",
+        "code": "AD",
+        "capital": "Andorra la Vella",
+        "currency": "EUR",
+        "emoji": "🇦🇩",
+        "states": []
+      },
+      {
+        "name": "United Arab Emirates",
+        "code": "AE",
+        "capital": "Abu Dhabi",
+        "currency": "AED",
+        "emoji": "🇦🇪",
+        "states": []
+      }
+   }
+}
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
