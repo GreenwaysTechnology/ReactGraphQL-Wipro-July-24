@@ -1,0 +1,267 @@
+				GraphQL
+....................................................................................
+What is GraphQL?
+	GraphQL is a "new API" standard that provides a more efficient, powerful and flexible alternative to REST.
+
+API: Application Programming interface
+......................................
+
+API means a method or function.
+method or function get input and return something, sometimes it may not.
+method represents biz logic - computation,reading,writing,removing,modifiying
+
+How apis are encapulated?
+
+ In object oriented programming, apis are grouped into "Objects" or classes.
+
+In oop, object communicates each other.one object calls method of other object 
+ "To get data"/to send data.
+
+Types of api:
+.............
+ types of api are classified based on their representation
+
+if apis are with in single process/runtime
+
+ "Local Api"
+
+class order{
+
+}
+class customer{
+   private Order order
+
+  getOrders(){
+     order.getOrder()
+  }
+}
+if two methods are communicated which are encapsulated within single runtime - local apis.
+
+
+if apis are communicating across the runtime either with in same machine, or same network or internet
+
+"Remote apis"
+....................................................................................
+				RPI -Remote Procedure Invocation
+....................................................................................
+
+RPI Technologies:
+
+1.c based rpi - first rpi
+2.corba - common object request broker arch
+3.rmi - remote method invocation - pure java technologies
+3.web services
+
+
+Web Services:
+ 
+ Based on internet rpi technologies
+
+client(can be any program any language)---talks to remote programm called server--via http protocal---(webcontainter)-hosts program
+
+Types of webservice
+
+1.soap - xml based
+2.rest  - data independant
+ 
+HTTP based api - Web service:
+.............................
+ rest api
+
+RPC based api technogies
+
+ "grpc" is another api technolgies
+...................................................................................
+			
+Mordern api technologies:
+
+1.REST API
+2.Grpc API
+3.Graphql API
+....................................................................................
+			History of Graphql or Why Graphql
+....................................................................................
+
+Rest spec is based on spec called REST spec
+https://www.ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm
+
+
+REST:
+   REST has not been designed to be 'user centric' rather than data centric...
+
+User:
+  User means biz or domain.
+REST:
+   REST has not been designed to be 'user centric' rather than data centric...
+
+if you define any api, which returns data set eg: if you query an api called products
+
+products may have so many fields, i dont want all fields which exposed by the api...
+
+GET  /api/products
+
+ =>[{
+  ...
+ }]
+
+Since REST not able to solve all types of user biz requirements, facebook was looking another solution to get data based "user centeric" not based on "data centeric"
+		         The birth of GraphQL
+.....................................................................................
+
+At its core, GraphQL enables "declarative data fetching" where a client can specify exactly what data it needs from an API.
+
+ "Instead of multiple endpoints that return fixed data structures", a GraphQL server only exposes a single endpoint and responds with precisely the data a client asked for.
+
+ GraphQL one End Point for "Enter domain",Each Domain has its own CURD operations
+
+
+
+				     |-------Product -Read,Save,Update,Delete
+				     |-------Customer-Read,Save,Update,Delete
+  Client-------Single Endpoint ------|-------Payment-Read,Save,Update,Delete
+				     |-------Inventory-Read,Save,Update,Delete
+	
+
+REST endpoints:
+
+GET /api/products
+POST /api/products
+PUT /api/products/id
+DELETE /api/products/id
+
+GET /api/customers
+POST /api/customers
+PUT /api/customers/id
+DELETE /api/customers/id
+
+
+.....................................................................................
+		   Request and Response Model in REST
+
+http
+ GET   /api/customers-----------> REST server
+            <-------JSON/XML/PDF/etc....
+
+
+ POST   /api/customers-----------> REST server
+            <-------JSON/XML/PDF/etc....
+
+.....................................................................................	
+ 	      Request and Response Model in Graphql
+
+http
+POST   /graphql-----------> Graphql server
+            <-------JSON
+
+....................................................................................
+ 			How to begin with GraphQL
+...................................................................................
+
+GraphQL is platform and language independant.
+
+GraphQL Can be classified into two category
+
+1.Client side - How to send data(Request) to the GraphQL server.
+  in order to send data from the client face book published one spec called
+   "GraphQL Query language spec"
+
+2.Server side - How to build graph(object tree) from the data sources
+    "GraphQL Schema language spec"
+
+.....................................................................................			   GraphQL request and response model.
+
+Declarative Programming:
+
+What you write, you have to get the same structure.
+
+The Query request is more readable,declarative. WHich micics the javascript object literal syntax.
+
+js object:
+
+ let user =  {
+     id:1,
+     name:'joe'
+     friends: [
+        'bar','foo'
+     ]
+  } 
+
+
+GraphQL basic request structure
+
+GraphQL Request payload : GraphQL Query
+.......................................
+
+GraphQL Client 
+
+POST /endpoint
+
+
+  {
+     id
+     name
+     friends {  ----------------------------->GraphQL Server
+        name
+     }
+  } 
+
+Response:JSON
+ {
+     "id":1,
+     "name":"joe"
+     "friends": [      <----------------------------- GraphQLAPIServer
+        "bar","foo"
+     ]
+  } 
+..............................................................................................
+				 REST AND CURD
+
+Operations Type
+
+GET ------Read
+POST -----CREATE
+PUT ------UPDATE
+DELETE----Remove
+.....................................................................................
+		          GRAPHQL And CURD
+
+
+GraphQL uses only URL which exposes Service
+
+
+  {
+     id
+     name
+     friends { -----------HTTP POST------------------> GraphQLServer
+        name
+     }
+  } 
+
+Since we have only one end point, how to Identify the different operations like create,read,update,delete.
+
+Thats where graphql offers "client language called GraphQL Query language"........
+
+GraphQL language offers syntax.
+
+
+Operation Types:
+
+1.Query
+  read
+2.mutation
+  create,update,delete
+3.subscription
+   Streaming
+
+query - a read only fetch
+mutation- a write followed by read
+subscription- a long live request that fetches data in response to source events
+....................................................................................
+
+
+
+
+
+
+
+
