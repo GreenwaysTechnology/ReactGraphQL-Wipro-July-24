@@ -487,7 +487,7 @@ Here comments is nested data structure.
 Use case: Query can ask nested data.
 
 # Request
-query GETCounterInfo {
+query GETCounteryInfo {
   countries {
     name
     code
@@ -500,7 +500,6 @@ query GETCounterInfo {
     }
   }
 }
-
 Response:
 "data": {
     "countries": [
@@ -522,16 +521,337 @@ Response:
       }
    }
 }
+  ....................................................................................
+			Args and parameters
+.....................................................................................
+
+What if i want to get data based on some condition or conditions
+
+Parameters can be either hardcoded or dynamic parameter
+
+Syntax:
+query getUser { 
+     user(variableName:value) {
+	fields
+     }
+}
+
+Hardcoded or static parameter
+.............................
+eg:
+query CountryByCode {
+   country(code:"IN"){
+     capital
+     name
+     currency
+   }
+}
+
+Response:
+{
+  "data": {
+    "country": {
+      "capital": "New Delhi",
+      "name": "India",
+      "currency": "INR"
+    }
+  }
+}
+.....................................................................................				  Dynamic parameters
+....................................................................................
+
+variables:
+ Variables are place holder to have dynamic values which are passed from outside.
+in case of client app, you can pass via programs.
+
+How to use variables?
+  Variables are used with "$VariableName" convention.
+
+Steps:
+1.Declare variable with data type as part of the query header
+
+
+Syntax:
+ query queryHeader($variableName:DataType){
+    apiName(variableName:$variableName){
+     fields
+   }
+ }
+
+Data Types:
+ Graphql provides language independant data types.
+
+Data Types:
+Scalar types(primitives)
+ ID
+ String
+ Float
+ Int
+ Enum
+ Boolean
+
+Complex Types(Object Types)
+ Objects-Customer,Country,Continent
+ Input- Special complex type-Primarily for passing complex input which is eq to dto
+
+EG:
+query CountryByCode($code:ID!) {
+   country(code:$code){
+     capital
+     name
+     currency
+   }
+}
+
+variables:
+{
+  "code": "US"
+}
+Response:
+{
+  "data": {
+    "country": {
+      "capital": "Washington D.C.",
+      "name": "United States",
+      "currency": "USD,USN,USS"
+    }
+  }
+}
+....................................................................................
+How to pass complex types or input types?
+
+query:
+query GETLANGUAGE_INFO($filter:LanguageFilterInput) {
+   languages(filter:$filter){
+     code 
+     name
+   }
+}
+variables:
+{
+  "filter": {
+    "code": {
+      "eq": "en"
+    }
+  }
+}
+{
+  "data": {
+    "languages": [
+      {
+        "code": "en",
+        "name": "English"
+      }
+    ]
+  }
+}
+....................................................................................
+			Aliases
+...................................................................................
+
+incase if you want field name differently or if you think that some duplicate fields are coming.
+
+id - userId
+
+Field  alises gives a dummy name for keys.
+
+
+without aliases:
+
+{
+ user(id:1){
+   id
+   name
+ }
+}
+
+Response:
+{
+ "data" : {
+   "user": {
+       "id":1,
+       "name:: "Subramanian"
+     }
+ }
+}
+With aliases:
+ {
+   subramanian:user(id:1){
+     id
+     name
+    }
+ }
+
+{
+ "data" : {
+   "subramanian": {
+       "id":1,
+        "name:: "Subramanian"
+     }
+ }
+}
+
+eg:
+query GETLANGUAGE_INFO($filter:LanguageFilterInput) {
+  mylang:languages(filter:$filter){
+     languagecode:code 
+     languageName:name
+   }
+}	
+variables:
+{
+  "filter": {
+    "code": {
+      "eq": "en"
+    }
+  }
+}
+Response:
+
+{
+  "data": {
+    "mylang": [
+      {
+        "languagecode": "en",
+        "languageName": "English"
+      }
+    ]
+  }
+}
+....................................................................................
+				Fragments
+.....................................................................................
+
+What if i have some fields,duplicated across many apis, in order to avoid duplicates fragments are used.
+
+Without Fragement
+Syntax:
+
+query {
+  user(id:2){
+   
+     friends {
+      id
+      name
+      pic
+     }
+    mutalfriends {
+      id
+      name
+      pic
+     }
+  }
+
+}
+ With Fragments:
+
+query {
+  user(id:2){
+   
+     friends {
+        ...friendsFields
+     }
+     mutalfriends {
+        ...friendsFields
+     }
+  }
+
+}
+framents friendsFields on User{
+      id
+      name
+      pic
+}
+
+eg:
+query countries {
+  countries {
+     ...CountryFields
+  }
+}
+fragment CountryFields on Country{
+  code
+  name
+}
+{
+  "data": {
+    "countries": [
+      {
+        "code": "AD",
+        "name": "Andorra"
+      },
+      {
+        "code": "AE",
+        "name": "United Arab Emirates"
+      }
+    ]
+ }
+....................................................................................
+			   Directives
+....................................................................................
+Directives are built in functions which provides some utilities.
+
+Syntax:
+   @directiveName(params)
+
+Graphql supports two basic directives
+
+1.@include(if:boolean)
+2.@skip(if:boolean)
   
+  These directives are used to include or exclude fields automatically.
 
+@include(if:Boolean)
+   only include "this field" in the result if the arg is true
+@skip(if:Boolean)
+   exclude /skip "this field" in the result if the arg is true.
 
+Syntax:
 
+query GetProfileHeader{
+    getProfile($id:Int,$withFriends:Boolean=false) {
+	profile(id:$id) {
+	   id
+           name
+	   friends @include(if:$withFriends)
+	
+        }
 
+    }
+}
+eg:
+query LanguageInfo($code: ID! = "en", $rtl: Boolean! = false) {
+  language(code: $code) {
+    name
+    native @include(if: $rtl)
+  }
+}
 
+with skip
+query LanguageInfo($code: ID! = "en", $rtl: Boolean! = false) {
+  language(code: $code) {
+    name
+    native @skip(if: $rtl)
+  }
+}
 
+variables:
+{
+  "code": "en",
+  "rtl": true,
+}
+Response:
 
-
-
+  "data": {
+    "language": {
+      "name": "English",
+      "native": "English"
+    }
+  }
+}
+.....................................................................................
+			  Mutation
+.....................................................................................
 
 
 
