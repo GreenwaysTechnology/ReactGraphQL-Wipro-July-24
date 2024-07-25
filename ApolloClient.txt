@@ -1,0 +1,151 @@
+			Graphlq Query language and React
+.....................................................................................
+
+Since graphql is language and platform indendant , can be used in any language.
+Our implementation is going to js,inside react.
+
+There is a framework called "Apollo" who is company provides graphql implementation
+in js and typescript for both server side and client side.
+
+For client side , apollo provides libs
+ 1.React
+ 2.Angular 
+ 3.Android - Kotlin  
+ 4.Ios -Swift
+
+Apollo Client is generic lib for many frameworks and libs
+
+
+Apollo Client:
+..............
+
+Apollo Client is a comprehensive state management lib for js.It enables you manage both local and remote data with Graphql, Use it to fetch, cache, and modify application data, all while automatically updating your UI.
+
+Apollo cient hepls you to structure code in prdictable, declarative way.
+
+There is a package @apllo/client lib package provides built in integration with React.
+
+
+Get started with Apollo Client
+
+1.Create react project.
+
+G:\Wipro\frontend>npm create vite@latest
+
+> npx
+> create-vite
+
+√ Project name: ... apollo-react
+√ Select a framework: » React
+√ Select a variant: » JavaScript
+
+Scaffolding project in G:\Wipro\frontend\apollo-react...
+
+Done. Now run:
+
+  cd apollo-react
+  npm install
+  npm run dev
+
+Step 2: install Apollo dependencies
+ Applications that use Apollo client require two top level dependencies.
+
+@apollo/client
+  This dependency offers many features
+
+1.in-memory cache
+2.local state management
+3.error handling
+4.react based view layer
+
+graphql.js - another dependency
+ This is core dependency which offers
+1.parse Graphql query,mutations etc...
+
+npm i @apollo/client graphql
+
+Step 3: Code
+3.0.import apollo apis
+import { ApolloClient,InMemoryCache,ApolloProvider,gql } from '@apollo/client'
+
+3.1.Initalize the apollo client
+//we will initalize the Apollo client ,passing its constructor a configuration object with uri
+//and cache fields
+
+const uri = 'https://flyby-router-demo.herokuapp.com/'
+const client = new ApolloClient({
+  uri: uri,
+  cache: new InMemoryCache()
+})
+
+4.Connect Apollo Client with React
+
+You connect Apollo Client to React with the ApolloProvider component. Similar to React's Context.Provider, ApolloProvider wraps your React app and places Apollo Client on the context, enabling you to access it from anywhere in your component tree.
+
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <ApolloProvider client={client}>
+      <App />
+    </ApolloProvider>
+  </React.StrictMode>,
+)
+
+5.Fetch Data with "useQuery" hook.
+
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import './index.css'
+import { ApolloClient, InMemoryCache, ApolloProvider, gql, useQuery } from '@apollo/client'
+
+//we will initalize the Apollo client ,passing its constructor a configuration object with uri
+//and cache fields
+
+const uri = 'https://flyby-router-demo.herokuapp.com/'
+const client = new ApolloClient({
+  uri: uri,
+  cache: new InMemoryCache()
+})
+//declare the query
+const GET_LOCATIONS = gql`
+  query GetLocations {
+    locations {
+       id 
+       name 
+       description
+       photo
+    }
+ } 
+  `
+function Location() {
+  const { loading, error, data } = useQuery(GET_LOCATIONS)
+
+  if (loading) return <p>Loading....</p>
+  if (error) return <p>Error:{error.message}</p>
+  return data.locations.map(({ id, name, description, photo }) => {
+    return <div key={id}>
+      <h3>{name}</h3>
+      <img width="400" height={250} alt="location-reference" src={`${photo}`} />
+      <br/>
+      <b>About this location:</b>
+      <p>{description}</p>
+      <br />
+    </div>
+
+  })
+}
+
+
+const App = () => {
+  return <>
+    <Location />
+  </>
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <ApolloProvider client={client}>
+      <App />
+    </ApolloProvider>
+  </React.StrictMode>,
+)
