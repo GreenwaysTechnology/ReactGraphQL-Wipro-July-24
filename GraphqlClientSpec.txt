@@ -850,12 +850,119 @@ Response:
   }
 }
 .....................................................................................
-			  Mutation
+			      Mutation
 .....................................................................................
 
+How to payload (data) to graphql api?
+
+create update delete
+
+IN REST
+
+HTTP VERB                   Convention in Server
+
+POST                          save
+
+DELETE			      remove
+
+PUT                           update
+
+IN GraphQL 
+
+In Graphql there is only one end point ,only one URL
 
 
+HTTP VERB        Graphql verb              Convention in Server
 
+POST             mutation                  save                   
+
+POST             mutation                  update
+
+POST             mutation                  remove
+
+POST             query                     read
+
+POST             subscription              read +Streaming
+                
+                   
+Testing:
+ 
+API url :
+
+https://graphqlzero.almansi.me/api
+                  
+create/insert
+
+mutation CREATEPOST($input:CreatePostInput!){
+  createPost(input:$input){
+     id 
+     title
+     body 
+  }
+}
+
+input:
+{
+  "input": {
+    "title": "Learn graphql",
+    "body": "Grapqhl is one the api technology"
+  }
+}
+Response:
+{
+  "data": {
+    "createPost": {
+      "id": "101",
+      "title": "Learn graphql",
+      "body": "Grapqhl is one the api technology"
+    }
+  }
+}
+
+UPDATE:
+........
+mutation UPDATEPOST($updatedPostId: ID!, $input: UpdatePostInput!) {
+  updatePost(id: $updatedPostId, input: $input) {
+    id
+    title
+    body
+  }
+}
+
+{
+  "updatedPostId": "1",
+  "input": {
+     "title":"Learn grpqhl with Apollo"
+  }
+}
+
+Response:
+{
+  "data": {
+    "updatePost": {
+      "id": "1",
+      "title": "Learn grpqhl with Apollo",
+      "body": "quia et suscipit\nsuscipit recusandae consequuntur expedita et cum\nreprehenderit molestiae ut ut quas totam\nnostrum rerum est autem sunt rem eveniet architecto"
+    }
+  }
+}
+
+Delete:
+........
+mutation DELETEPOST($id:ID!){
+  deletePost(id: $id)
+}
+
+{
+  "id": "1"
+}
+
+Response:
+{
+  "data": {
+    "deletePost": true
+  }
+}
 
 
 
