@@ -10,9 +10,9 @@ const client = new ApolloClient({
 })
 
 
-const USERS_QUERY = gql`
-query USERS_QUERY {
-  users {
+const USER_QUERY = gql`
+query USER_QUERY {
+  user {
     id
     firstName
     lastName
@@ -23,24 +23,20 @@ query USERS_QUERY {
 }
   `
 
-function Users() {
-    const { loading, error, data } = useQuery(USERS_QUERY)
+function User() {
+    const { loading, error, data } = useQuery(USER_QUERY)
 
 
     if (loading) return <p>Loading....</p>
     if (error) return <p>Error:{error.message}</p>
     console.log(data)
     return <>
-        <div>
-            {data.users.map(user => {
-                return <h1>{user.id} {user.firstName} {user.lastName}</h1>
-            })}
-        </div>
+        <h1>{data.user.id} {data.user.firstName} {data.user.lastName}</h1>
     </>
 }
 const App = () => {
     return <>
-        <Users />
+        <User/>
     </>
 }
 

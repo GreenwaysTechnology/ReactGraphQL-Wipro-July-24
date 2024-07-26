@@ -9,38 +9,33 @@ const client = new ApolloClient({
     cache: new InMemoryCache()
 })
 
-
-const USERS_QUERY = gql`
-query USERS_QUERY {
-  users {
-    id
-    firstName
-    lastName
-    age
-    status
-    points
-  }
+//declare the query
+const GET_HELLO = gql`
+query HELLOQuery {
+  hello
+}
+ `
+const MATH_QUERY = gql`
+query AddQuery {
+  add
+  multiply
+  div
 }
   `
 
-function Users() {
-    const { loading, error, data } = useQuery(USERS_QUERY)
-
+function Add() {
+    const { loading, error, data } = useQuery(MATH_QUERY)
 
     if (loading) return <p>Loading....</p>
     if (error) return <p>Error:{error.message}</p>
     console.log(data)
     return <>
-        <div>
-            {data.users.map(user => {
-                return <h1>{user.id} {user.firstName} {user.lastName}</h1>
-            })}
-        </div>
+        <h1>{data.add} {data.multiply} {data.div}</h1>
     </>
 }
 const App = () => {
     return <>
-        <Users />
+        <Add/>
     </>
 }
 
