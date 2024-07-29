@@ -1697,5 +1697,327 @@ Response:
         "skills"
       ],
 }
+
 .....................................................................................
+ 		Mobile applications and Graphql Integration
+.....................................................................................
+
+Types of mobile Application
+
+1.native mobile app
+  app written in native technology like android,ios
+2.hybrid mobile app
+  app written in js.
+
+React and Mobile Application:
+.............................
+   Using react we can create mobile apps called "react native application".
+
+React native apps are written using "core react principles like componets,state,props"
+
+
+React web vs react native:
+...........................
+
+react web uses html as mark up language
+react native uses "Mobile markup language"
+
+https://reactnative.dev/docs/set-up-your-environment?os=windows
+
+Before that we need to have mobile environment.
+
+I am going to emulator
+
+Create React Native Project using react native cli:
+..................................................
+
+npx @react-native-community/cli@latest init GraphqlApp
+
+User interface:
+ in case of react we html as markup , but here we use mobile markup.
+
+web       react native
+<div>      <View>
+h1,h2      <Text>
+
+
+Styling:
+ In react we use css language directly
+
+ <div className="container">
+
+ In react native we css via js 
+
+ <View style={{backgroundColor:'pink'}} />
+
+Layouts in web:
+
+1.fixed width layout
+2.Responsive layout using %
+3.Responsive layout
+   ->grid
+   ->flex
+
+Flex is layout by default used in React native
+
+Props, state,functions,hooks every thing is same.
+
+index.js is entry file
+App.jsx is Root Application component
+
+
+
+App.jsx
+import { useState } from "react";
+import { View, Text, StyleSheet, Button } from "react-native";
+
+const Counter = () => {
+    const [counter, setCounter] = useState(0)
+    return <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <Text>Counter {counter}</Text>
+        <Button title="+" onPress={() => {
+            setCounter(counter + 1)
+        }} />
+    </View>
+}
+
+function App() {
+    return <View style={styles.container}>
+        <Text style={{ fontSize: 20 }}>Welcome To Graphql app!</Text>
+        <Counter />
+    </View>
+}
+export default App;
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        marginTop: 10,
+        alignItems: 'center'
+    }
+})
+
+How to connect ReactNative with graphql server?
+...............................................
+
+import { ApolloClient, InMemoryCache, ApolloProvider, gql, useQuery } from '@apollo/client'
+import { View, Text, StyleSheet, Button, ScrollView } from "react-native";
+
+const uri = 'https://countries.trevorblades.com/'
+const client = new ApolloClient({
+    uri: uri,
+    cache: new InMemoryCache()
+})
+
+
+const COUNTRIES_QUERY = gql`
+query COUNTRIES_QUERY {
+  countries {
+    name
+  }
+}
+
+  `
+const Countries = () => {
+    const { loading, error, data } = useQuery(COUNTRIES_QUERY)
+    if (loading) return <Text>Loading....</Text>
+    if (error) return <Text>Error:{error.message}</Text>
+
+    return <ScrollView style={styles.container}>
+        <>
+                {data.countries.map(country => {
+                    return <Text style={{textAlign:'center',color:'blue'}}>{country.name}</Text>
+                })}
+        </>
+    </ScrollView>
+}
+
+function App() {
+    return <ApolloProvider client={client}>
+        <Countries/>
+    </ApolloProvider>
+}
+export default App;
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: 'pink'
+    }
+})
+...................................................................................
+			   Mutation
+...................................................................................
+
+Mutation means sending data for insert,update,delete
+
+In the React.
+
+useMutation react hook is the primary api for executing mutations in an apollo application.
+
+Syntax:
+
+import {gql,useMutation} from '@apollo/client'
+
+//Define mutation:
+const NAME_MUTATION = gql`
+
+ mutation save {
+     fields
+ }
+
+
+`
+function MyComponent(){
+ const [mutateFunction,{data,loading,error}]=useMutation(NAME_MUTATION)
+}
+
+useMutation hooks returns "tuple" that includes
+
+1.A mutation function that you can call at any time to execute the mutation
+ 
+2.Unlike useQuery, useMutation does not execute its operations automatically on render,instead , you call this mutation function in the button click.
+
+3.An object with fields that the represent the current status of the muation's
+  excution - data,loding,error etc...
+
+
+Eg:
+ we are going to create simple todo application, and we want to the user to be able to add items to their list.
+
+Server side code
+
+import { ApolloServer } from "@apollo/server"
+import { startStandaloneServer } from '@apollo/server/standalone'
+import { LRUCache } from "lru-cache"
+//type defs
+const typeDefs = `
+  type Query {
+     todos:[Todo],
+     todo(id:String!):Todo
+  }
+  type Todo{
+   id:ID!
+   title:String
+   completed:Boolean
+  }
+  type Mutation {
+   addTodo(title:String!,completed:Boolean):Todo
+   updateTodo(id:String!,title:String!):Todo
+  }
+
+`
+const todosItem = [{
+    id: 1,
+    title: "delectus aut autem",
+    completed: false
+},
+{
+    id: 2,
+    title: "quis ut nam facilis et officia qui",
+    completed: false
+},]
+//2.Biz logic for hello Query : Resolvers
+const resolvers = {
+    Query: {
+        todos() {
+            return todosItem
+        }
+    },
+    //Mutation
+
+    Mutation: {
+        addTodo(_, { title, completed }) {
+            const newTodo = { id: 2 + 2, title, completed }
+            //write a logic to push newtodo into array
+            todosItem.concat(newTodo)
+            console.log(todosItem)
+            return newTodo
+        }
+    }
+    //Subscription
+}
+//3.We need to deploy the schema and bind with resolver 
+const server = new ApolloServer({
+    typeDefs: typeDefs,
+    resolvers: resolvers
+})
+
+//4.Start web server (Express.js)
+const { url } = await startStandaloneServer(server, {
+    listen: {
+        port: 4000
+    }
+})
+console.log(`Apollo Server is Ready ${url}`)
+
+React code:
+............
+
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import './index.css'
+import { ApolloClient, InMemoryCache, ApolloProvider, gql, useQuery, useMutation } from '@apollo/client'
+
+const uri = 'http://localhost:4000/'
+const client = new ApolloClient({
+    uri: uri,
+    cache: new InMemoryCache()
+})
+
+
+const TODO_MUTATION = gql`
+  mutation CREATE_TODO($title:String!,$completed:Boolean=false) {
+    addTodo(title:$title,completed:$completed){
+       id
+       title
+       completed
+    }
+}
+
+ `
+
+function Todo() {
+    let title;
+    let completed;
+    const [addTodo, { data, loading, error }] = useMutation(TODO_MUTATION)
+    if (loading) return 'Submitting'
+    if (error) return `Submssion eror! ${error.message}`
+    if(data){
+        return <h1>{JSON.stringify(data)}</h1>
+    }
+    return <div>
+        <form onSubmit={e => {
+            e.preventDefault()
+            addTodo({ variables: { title: title.value, completed: false } })
+        }}>
+            <input ref={node => {
+                title = node
+            }} />
+            <button type="submit">Add Todo</button>
+        </form>
+    </div>
+}
+const App = () => {
+    return <>
+        <Todo />
+    </>
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+    <React.StrictMode>
+        <ApolloProvider client={client}>
+            <App />
+        </ApolloProvider>
+    </React.StrictMode>,
+)
+
+
+
+
+
+
+
+
+
 
