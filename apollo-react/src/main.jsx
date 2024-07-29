@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import './index.css'
-import { ApolloClient, InMemoryCache, ApolloProvider, gql, useQuery } from '@apollo/client'
+import { ApolloClient, InMemoryCache, ApolloProvider, gql, useQuery, useMutation } from '@apollo/client'
 
 const uri = 'http://localhost:4000/'
 const client = new ApolloClient({
@@ -10,37 +10,41 @@ const client = new ApolloClient({
 })
 
 
-const USERS_QUERY = gql`
-query USERS_QUERY {
-  users {
-    id
-    firstName
-    lastName
-    age
-    status
-    points
-  }
+const TODO_MUTATION = gql`
+  mutation CREATE_TODO($title:String!,$completed:Boolean=false) {
+    addTodo(title:$title,completed:$completed){
+       id
+       title
+       completed
+    }
 }
-  `
 
-function Users() {
-    const { loading, error, data } = useQuery(USERS_QUERY)
+ `
 
-
-    if (loading) return <p>Loading....</p>
-    if (error) return <p>Error:{error.message}</p>
-    console.log(data)
-    return <>
-        <div>
-            {data.users.map(user => {
-                return <h1>{user.id} {user.firstName} {user.lastName}</h1>
-            })}
-        </div>
-    </>
+function Todo() {
+    let title;
+    let completed;
+    const [addTodo, { data, loading, error }] = useMutation(TODO_MUTATION)
+    if (loading) return 'Submitting'
+    if (error) return `Submssion eror! ${error.message}`
+    if(data){
+        return <h1>{JSON.stringify(data)}</h1>
+    }
+    return <div>
+        <form onSubmit={e => {
+            e.preventDefault()
+            addTodo({ variables: { title: title.value, completed: false } })
+        }}>
+            <input ref={node => {
+                title = node
+            }} />
+            <button type="submit">Add Todo</button>
+        </form>
+    </div>
 }
 const App = () => {
     return <>
-        <Users />
+        <Todo />
     </>
 }
 
