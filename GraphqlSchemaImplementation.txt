@@ -2011,6 +2011,390 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         </ApolloProvider>
     </React.StrictMode>,
 )
+.....................................................................................
+			   Subscriptions
+....................................................................................
+Get real time updates from Graphql server.
+
+Like queries , subscriptions enable you to fetch data.
+Unlike queries, subscriptions are long lasting opertions that can change their result over period times.
+They can maintain an active connection to your graphql server(over websocket)
+
+Subscriptions are use full for notifying your client in real time about changes to back end data, such as creation of new object or updates an important field.
+
+When to use Subscriptions:
+..........................
+
+In the majority of the use cases, your client should not use subscriptions to stay update with your back end.
+
+How Subscriptions work?
+
+Supported subscription protocals
+................................
+  The graphql spec does not define a specific protocal for sending subscriptions request.
+
+1.WebSocket is one the protocal to send subscriptions to client
+
+Sub protocals:
+...............
+  1.graphql-ws
+  2.subscriptions-transport-ws - deprecated
+
+2.HTTP, using chunked multipart responses 
+ 
+Subprotocals for http
+   1.Relay
+   2.urql
+....................................................................................
+
+Defining Subscription
+.....................
+
+To define a subscription on the both server and client side, just like you do for quries and mutations.
+
+Server side:
+
+type Subscription{
+   commentAdded(postID:ID!):Comment
+}
+
+"commentAdded" subscription notifies a subcribing client when ever a new comment is added to a particular blog post.
+
+Client Side
+............
+
+const COMMENTS_SUBSCRIPTION = gql `
+  subscription OnCommentAdded($postID:ID!){
+     commentAdded(postID:$postID){
+         id
+         content
+     }
+
+  }
+
+`
+When apollo client executes the above subscription,, it establishes  a connection
+to your graphql server and listens for response.
+
+Unlike query, there is no expectation that the server will immediately process and return a response.
+
+Only Your pushses data to your client when a particular "event" occurs on your backend
+
+
+Server side code:
+
+project setup:
+
+mkdir subscriptions-server
+
+G:\Wipro\frontend\subscriptions-server>npm init --yes
+Wrote to G:\Wipro\frontend\subscriptions-server\package.json:
+
+{
+  "name": "subscriptions-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
+install core dependencies:
+..........................
+npm install @apollo/server graphql
+npm i --save-dev typescript @types/node
+npm install --save-dev tsc-watch
+
+subscriptions related dependency
+
+Websocket setup:
+
+npm i graphql-ws
+
+ApolloLink is lib that helps you customize Apollo client's network communication.
+
+"GraphQLWSLink" is wrapper api to send messages over ws
+
+import {GraphqlWSLink} from '@apollo/client/link/subscription'
+import {createClient} from 'graphql-ws'
+
+
+const wsLink=new GraphqlWSLink(createClient({
+ url:'ws://localhost:4000/subscriptions'
+}))
+
+3.Spilt Communication by operations(Query,Mutation,Subscription)
+
+ Although apollo client can use your GraphqlWSLink to exectue all operation types,
+ in most cases it may contain using HTTP Queries and mutations.
+ This is because queries and mutations does not require long lasting statefull  connections 
+
+ In order to isloate @apollo/client lib provides spilt function that lets you isloate
+ two different Links according to boolean checks.
+
+
+const httpLink=new HttpLink({
+ uri:'http://localost:4000/grapqhl'
+})
+
+const wsLink=new GraphqlWSLink(createClient({
+ url:'ws://localhost:4000/subscriptions'
+}))
+
+const spilitLink = spilt(...)
+
+const client = new ApolloClient({
+  link:spiltLink,
+  cache: new InMemoryCache()
+})
+.....................................................................................
+			Setting up Subscription server
+....................................................................................
+
+schema:
+// Schema definition
+
+const typeDefs = `#graphql
+  type Query {
+    currentNumber: Int
+  }
+
+  type Subscription {
+    numberIncremented: Int
+  }
+`;
+
+Enabling subscriptions:
+.......................
+
+1.startStandaloneServer is not supported by Apollo Server when we use subscriptions
+
+2.toEnble subscriptions, you must first swap using the "expressMiddleware" function
+
+3.install the following dependencies
+
+  npm i graphql-ws ws @graphql-tools-schema
+
+import { createServer } from 'http';
+import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { WebSocketServer } from 'ws';
+import { useServer } from 'graphql-ws/lib/use/ws';
+
+
+4.schema and resolver binding
+
+// A number that we'll increment over time to simulate subscription events
+let currentNumber = 0;
+
+// Schema definition
+const typeDefs = `#graphql
+  type Query {
+    currentNumber: Int
+  }
+
+  type Subscription {
+    numberIncremented: Int
+  }
+`;
+
+// Resolver map
+const resolvers = {
+  Query: {
+    currentNumber() {
+      return currentNumber;
+    },
+  },
+  Subscription: {
+    numberIncremented: {
+      subscribe: () => pubsub.asyncIterator(['NUMBER_INCREMENTED']),
+    },
+  },
+};
+
+// Create schema, which will be used separately by ApolloServer and
+// the WebSocket server.
+const schema = makeExecutableSchema({ typeDefs, resolvers });
+
+
+Websocker setup:
+
+const app = express();
+const httpServer = createServer(app);
+
+// Set up WebSocket server.
+const wsServer = new WebSocketServer({
+  server: httpServer,
+  path: '/graphql',
+});
+
+Event Emission:
+ Sending data to client via subscriptions
+ 
+Subscriptions are based on pub-sub pattern (Event Driven Pattern).
+
+Publisher(Server)
+  Publishes event(data)
+
+How to publish event:
+....................
+
+ There is special libraries available to publish event.
+
+1.PubSub instance from 'graphql-subscriptions' package
+ npm i graphql-subscriptions
+
+Production grade PubSub libr
+2.Kafka
+
+3.redis
+
+4.GooglePub
+etc
+
+Subscriber(Client)
+  Listens for event(data)
+ 
+Eg:
+
+package.json
+{
+  "name": "as4-subscriptions-graphql-ws",
+  "version": "1.0.0",
+  "description": "An example of setting up subscriptions with Apollo Server 4",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "postinstall": "npm run compile",
+    "compile": "tsc",
+    "start": "npm run compile && node ./dist/index.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@apollo/server": "^4.1.0",
+    "@graphql-tools/schema": "^9.0.13",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "graphql": "^16.6.0",
+    "graphql-subscriptions": "^2.0.0",
+    "graphql-ws": "^5.5.5",
+    "typescript": "^4.7.4",
+    "ws": "^8.4.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.13",
+    "@types/node": "^18.6.3",
+    "@types/ws": "^8.2.2"
+  }
+}
+.................................................................................
+
+import { ApolloServer } from '@apollo/server';
+import { expressMiddleware } from '@apollo/server/express4';
+import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
+import express from 'express';
+import { createServer } from 'http';
+import { makeExecutableSchema } from '@graphql-tools/schema';
+import { WebSocketServer } from 'ws';
+import { useServer } from 'graphql-ws/lib/use/ws';
+import { PubSub } from 'graphql-subscriptions';
+import bodyParser from 'body-parser';
+import cors from 'cors';
+
+const PORT = 4000;
+const pubsub = new PubSub();
+
+// A number that we'll increment over time to simulate subscription events
+let currentNumber = 0;
+
+// Schema definition
+const typeDefs = `#graphql
+  type Query {
+    currentNumber: Int
+  }
+
+  type Subscription {
+    numberIncremented: Int
+  }
+`;
+
+// Resolver map
+const resolvers = {
+  Query: {
+    currentNumber() {
+      return currentNumber;
+    },
+  },
+  Subscription: {
+    numberIncremented: {
+      //pubsub.publish()
+      //it will return event/publish event
+      subscribe: () => pubsub.asyncIterator(['NUMBER_INCREMENTED']),
+    },
+  },
+};
+
+// Create schema, which will be used separately by ApolloServer and
+// the WebSocket server.
+const schema = makeExecutableSchema({ typeDefs, resolvers });
+
+// Create an Express app and HTTP server; we will attach the WebSocket
+// server and the ApolloServer to this HTTP server.
+const app = express();
+const httpServer = createServer(app);
+
+// Set up WebSocket server.
+const wsServer = new WebSocketServer({
+  server: httpServer,
+  path: '/graphql',
+});
+const serverCleanup = useServer({ schema }, wsServer);
+
+// Set up ApolloServer.
+const server = new ApolloServer({
+  schema,
+  plugins: [
+    // Proper shutdown for the HTTP server.
+    ApolloServerPluginDrainHttpServer({ httpServer }),
+
+    // Proper shutdown for the WebSocket server.
+    {
+      async serverWillStart() {
+        return {
+          async drainServer() {
+            await serverCleanup.dispose();
+          },
+        };
+      },
+    },
+  ],
+});
+
+await server.start();
+
+//middleware injection
+//cors middleware
+//bodyParser middleware , convert incoming json into js object
+app.use('/graphql', cors<cors.CorsRequest>(), bodyParser.json(), expressMiddleware(server));
+
+// Now that our HTTP server is fully set up, actually listen.
+httpServer.listen(PORT, () => {
+  console.log(`🚀 Query endpoint ready at http://localhost:${PORT}/graphql`);
+  console.log(`🚀 Subscription endpoint ready at ws://localhost:${PORT}/graphql`);
+});
+
+// In the background, increment a number every second and notify subscribers when it changes.
+function incrementNumber() {
+  currentNumber++;
+  pubsub.publish('NUMBER_INCREMENTED', { numberIncremented: currentNumber });
+  setTimeout(incrementNumber, 1000);
+}
+
+// Start incrementing
+incrementNumber();
 
 
 
